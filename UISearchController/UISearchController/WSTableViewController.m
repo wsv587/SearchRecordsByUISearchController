@@ -181,9 +181,11 @@
     // 也就是UISearchBar聚焦的时候会调用该方法
     // UISearchBar中文本改变的时候不会调用该方法
     // 如果有搜索历史才显示"清除搜索历史"
-    if (self.searchRecords.count) {
+    if (self.searchRecords.count && self.searchVC.searchBar.text.length == 0) {
         self.tableView.tableFooterView = self.deleteSearchRecordsButton;
         self.deleteSearchRecordsButton.hidden = NO; // 如果清除过搜索历史，那么按钮被隐藏了，重新添加按钮的时候需要把按钮显示出来
+    } else if (self.searchRecords.count && self.searchVC.searchBar.text.length) {
+        self.deleteSearchRecordsButton.hidden = YES; // 有这么一种情况：如果我在搜索框中输入了一个关键字然后点击了“search”，那么此时搜索框失去焦点，再次点击搜索框使其聚焦，又会调用这个方法。也就是说，此时虽然这个文本框中有内容，当再次使其聚焦时，依然回调这个方法，所以我们需要判断搜索框中的内容的长度，如果长度为0，需要显示“清除搜索历史按钮”，如果长度不为0，则隐藏“清除搜索历史按钮”。
     } else {
         self.tableView.tableFooterView = [UIView new]; // 写在这会导致点击了取消按钮后，tableView仍然会有那个tableFooterView，所以需要在取消的回调方法中，重新设置
         [self.tableView reloadData];
