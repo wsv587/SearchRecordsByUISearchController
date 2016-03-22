@@ -42,6 +42,8 @@
     self.tableView.tableHeaderView = self.searchVC.searchBar;
     self.tableView.sectionFooterHeight = 0; // 默认是10，如果想让“清除搜索历史”和tableview紧挨着，那么需要把这个属性设置为0.
     self.tableView.sectionHeaderHeight = 0; // 默认是10
+    
+//    self.tableView.contentInset = UIEdgeInsetsMake(-40, 0, 0, 0);
     // 加载偏好设置中的搜索记录
     [self loadSearchRecords];
     
@@ -96,7 +98,7 @@
 
 - (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    if (_searchVC.active && self.searchRecords.count) {
+    if (_searchVC.active && self.searchRecords.count && _searchVC.searchBar.text.length == 0) {
         return @"搜索历史";
     } else if (_searchVC.active && _searchVC.searchBar.text.length) {
         return nil;
@@ -181,11 +183,23 @@
     // 如果有搜索历史才显示"清除搜索历史"
     if (self.searchRecords.count) {
         self.tableView.tableFooterView = self.deleteSearchRecordsButton;
+        self.deleteSearchRecordsButton.hidden = NO; // 如果清除过搜索历史，那么按钮被隐藏了，重新添加按钮的时候需要把按钮显示出来
     } else {
         self.tableView.tableFooterView = [UIView new]; // 写在这会导致点击了取消按钮后，tableView仍然会有那个tableFooterView，所以需要在取消的回调方法中，重新设置
         [self.tableView reloadData];
     }
 
+}
+
+- (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText   // called when text changes (including clear)
+{
+//    NSString *title = [self tableView:self.tableView titleForHeaderInSection:1];
+    // 搜索框正在输入并且搜索框内有内容的时候隐藏“清除搜索历史”按钮；否则显示“清除搜索历史”按钮
+    if (searchBar.text.length) {
+        self.deleteSearchRecordsButton.hidden = YES;
+    } else {
+        self.deleteSearchRecordsButton.hidden = NO;
+    }
 }
 
 // 点击键盘上的search按钮不会调用下面的方法
@@ -194,6 +208,7 @@
 //    return YES;
 //}
 
+#pragma mark - private methord
 // 加载偏好设置中的搜索记录
 - (void)loadSearchRecords
 {
@@ -210,6 +225,22 @@
     NSLog(@"%@,%@",self.searchRecords,[[defaults objectForKey:SEARCH_RECORDS] class]);
 }
 
+- (void)didClickDeleteSearchRecordsButton:(UIButton *)button
+{
+    NSLog(@"点击了清除搜索历史按钮");
+    // 清除缓存的搜索记录
+    [self.searchRecords removeAllObjects];
+    // 更新偏好设置的搜索记录
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:_searchRecords forKey:SEARCH_RECORDS];
+    
+    // 隐藏“清除搜索记录”按钮 和 “搜索历史”标题
+    self.deleteSearchRecordsButton.hidden = YES;
+    
+    // 刷新表格
+    [self.tableView reloadData];
+    
+}
 #pragma mark - getter AND setter
 
 - (NSMutableArray *)dataArray
@@ -245,6 +276,7 @@
         [_deleteSearchRecordsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
         [_deleteSearchRecordsButton setBackgroundColor:[UIColor clearColor]];
 //        [_deleteSearchRecordsButton setTintColor:[UIColor blackColor]]; // 不能设置button 的 title颜色
+        [_deleteSearchRecordsButton addTarget:self action:@selector(didClickDeleteSearchRecordsButton:) forControlEvents:UIControlEventTouchUpInside];
     }
     return _deleteSearchRecordsButton;
 }
