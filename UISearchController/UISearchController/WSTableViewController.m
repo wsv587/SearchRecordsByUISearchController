@@ -40,7 +40,8 @@
     _searchVC.hidesNavigationBarDuringPresentation = YES; // 当搜索时，是否隐藏导航条
     _searchVC.searchBar.placeholder = @"支持网站账号搜索，客户名称，手机号等关键词搜索";
     self.tableView.tableHeaderView = self.searchVC.searchBar;
-
+    self.tableView.sectionFooterHeight = 0; // 默认是10，如果想让“清除搜索历史”和tableview紧挨着，那么需要把这个属性设置为0.
+    self.tableView.sectionHeaderHeight = 0; // 默认是10
     // 加载偏好设置中的搜索记录
     [self loadSearchRecords];
     
@@ -92,14 +93,24 @@
 }
 
 #pragma mark - UITableViewDelegate
-- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+
+- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
 {
-    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 80, 40)];
-    [label sizeToFit];
-    label.text = @"搜索历史";
-    label.backgroundColor = [UIColor redColor];
-    return label;
+    if (_searchVC.active && self.searchRecords.count) {
+        return @"搜索历史";
+    } else if (_searchVC.active && _searchVC.searchBar.text.length) {
+        return nil;
+    }
+    return nil;
 }
+//- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+//{
+//    UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0, 20, 80, 40)];
+//    [label sizeToFit];
+//    label.text = @"搜索历史";
+//    label.backgroundColor = [UIColor redColor];
+//    return label;
+//}
 
 - (nullable UIView *)tableView:(UITableView *)tableView viewForFooterInSection:(NSInteger)section
 {
@@ -171,7 +182,7 @@
     if (self.searchRecords.count) {
         self.tableView.tableFooterView = self.deleteSearchRecordsButton;
     } else {
-        self.tableView.tableFooterView = [UIView new]; // 写在这会导致点击了取消按钮后，tableView仍然会有那个tableFooterView，所以需要在取消的回调方法中，重新设置self.tableView.tableFooterView = [UIView new];
+        self.tableView.tableFooterView = [UIView new]; // 写在这会导致点击了取消按钮后，tableView仍然会有那个tableFooterView，所以需要在取消的回调方法中，重新设置
         [self.tableView reloadData];
     }
 
@@ -231,7 +242,9 @@
         // 创建一个按钮作为tableView尾部视图
         _deleteSearchRecordsButton = [[UIButton alloc] initWithFrame:CGRectMake(0, 0, [UIScreen mainScreen].bounds.size.width, 40)];
         [_deleteSearchRecordsButton setTitle:@"清除搜索历史" forState:UIControlStateNormal];
-        [_deleteSearchRecordsButton setTintColor:[UIColor blackColor]];
+        [_deleteSearchRecordsButton setTitleColor:[UIColor blackColor] forState:UIControlStateNormal];
+        [_deleteSearchRecordsButton setBackgroundColor:[UIColor clearColor]];
+//        [_deleteSearchRecordsButton setTintColor:[UIColor blackColor]]; // 不能设置button 的 title颜色
     }
     return _deleteSearchRecordsButton;
 }
