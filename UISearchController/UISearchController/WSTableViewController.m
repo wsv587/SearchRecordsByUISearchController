@@ -190,7 +190,38 @@
         self.tableView.tableFooterView = [UIView new]; // 没有历史纪录不显示“清除搜索历史”按钮；点击“取消”，tableView仍然会有那个“清除搜索历史”按钮，所以需要在取消的回调方法中，做同样设置
         [self.tableView reloadData];
     }
+    
+    searchBar.showsCancelButton = YES;
+    for (id subView in [searchBar.subviews[0] subviews]) {
+        if ([subView isKindOfClass:NSClassFromString(@"UINavigationButton")]) {
+            UIButton *cancelButton = (UIButton *)subView;
+            [cancelButton setTitle:@"取消" forState:UIControlStateNormal];
+            [cancelButton setTitleColor:[UIColor lightGrayColor] forState:UIControlStateNormal];
+            NSLog(@"...");
+        }
+    }
 
+//    for (id obj in [searchBar subviews]) {
+//        if ([obj isKindOfClass:[UIView class]]) {
+//            for (id obj2 in [obj subviews]) {
+//                if ([obj2 isKindOfClass:[UIButton class]]) {
+//                    UIButton *btn = (UIButton *)obj2;
+//                    [btn setTitle:@"取消" forState:UIControlStateNormal];
+//                }
+//            }
+//        }
+//    }
+//    for(id cc in [searchBar subviews])
+//    {
+//        if([cc isKindOfClass:[UIButton class]])
+//        {
+//            UIButton *btn = (UIButton *)cc;
+//            [btn setTitle:@"取消" forState:UIControlStateNormal];
+//
+////            [btn setTitle:[AppLanguageProcess getLanguageWithKey:@"TEXT_CANCEL"]  forState:UIControlStateNormal];
+//            [btn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+//        }
+//    }
 }
 
 - (void)searchBar:(UISearchBar *)searchBar textDidChange:(NSString *)searchText   // called when text changes (including clear)
